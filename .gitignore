@@ -2,3 +2,4 @@ __pycache__/
 build/
 model/
 *.pyd
+.DS_Store

@@ -110,3 +110,39 @@ def create_data_loader(cfg, params, buffer_size, mode, is_aug_data, label_encode
 # data_loader = create_data_loader(cfg, params, buffer_size, mode, is_aug_data)
 # for batch in data_loader:
 #     # Process the batch
+
+
+# JG: The purpose is to create a dataset that can be used with the dataloader
+class PointCloudImageDataset(Dataset):
+    def __init__(self, point_cloud_dir, image_dir, transform=None):
+        """
+        Args:
+            point_cloud_dir (string): Directory with all the point clouds.
+            image_dir (string): Directory with all the corresponding images.
+            transform (callable, optional): Optional transform to be applied on a sample.
+        """
+        self.point_cloud_dir = point_cloud_dir
+        self.image_dir = image_dir
+        self.transform = transform
+        self.file_names = [f for f in os.listdir(point_cloud_dir) if os.path.isfile(os.path.join(point_cloud_dir, f))]
+
+    def __len__(self):
+        return len(self.file_names)
+
+    def __getitem__(self, idx):
+        pc_file = os.path.join(self.point_cloud_dir, self.file_names[idx])
+        img_file = os.path.join(self.image_dir, self.file_names[idx].replace('.pcd', '.png'))  # Assuming image files are .png
+
+        # Load point cloud data
+        point_cloud = np.load(pc_file)  # Modify this based on your point cloud data format
+
+        # Load image data
+        image = Image.open(img_file)
+        image = np.array(image)
+
+        sample = {'point_cloud': point_cloud, 'image': image}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
